@@ -16,8 +16,9 @@
           "type": "category",
           "settings": {
             "title": "Guitar tuners",
-            "collection": "tuners",
-            "atlas_index": 0
+            "collection": "guitar-tuners",
+            "atlas_index": 0,
+            "product_type": "Guitar tuners"
           }
         },
         "bass-tuners": {
@@ -25,15 +26,17 @@
           "settings": {
             "title": "Bass tuners",
             "collection": "bass-tuners",
-            "atlas_index": 6
+            "atlas_index": 6,
+            "product_type": "Bass tuners"
           }
         },
         "bridges": {
           "type": "category",
           "settings": {
             "title": "Tremolo bridges",
-            "collection": "bridges",
-            "atlas_index": 1
+            "collection": "tremolo-bridges",
+            "atlas_index": 1,
+            "product_type": "Tremolo bridges"
           }
         },
         "tailpieces": {
@@ -41,7 +44,8 @@
           "settings": {
             "title": "Tailpieces",
             "collection": "tailpieces",
-            "atlas_index": 7
+            "atlas_index": 7,
+            "product_type": "Tailpieces"
           }
         },
         "pickups": {
@@ -49,7 +53,8 @@
           "settings": {
             "title": "Pickups",
             "collection": "pickups",
-            "atlas_index": 2
+            "atlas_index": 2,
+            "product_type": "Pickups"
           }
         },
         "electronics": {
@@ -57,7 +62,8 @@
           "settings": {
             "title": "Electronics",
             "collection": "electronics",
-            "atlas_index": 3
+            "atlas_index": 3,
+            "product_type": "Electronics"
           }
         },
         "pickguards": {
@@ -65,7 +71,8 @@
           "settings": {
             "title": "Pickguards",
             "collection": "pickguards",
-            "atlas_index": 4
+            "atlas_index": 4,
+            "product_type": "Pickguards"
           }
         },
         "saddles": {
@@ -73,7 +80,8 @@
           "settings": {
             "title": "Saddles",
             "collection": "saddles",
-            "atlas_index": 5
+            "atlas_index": 5,
+            "product_type": "Saddles"
           }
         },
         "knobs": {
@@ -81,7 +89,8 @@
           "settings": {
             "title": "Knobs",
             "collection": "knobs",
-            "atlas_index": 8
+            "atlas_index": 8,
+            "product_type": "Knobs"
           }
         }
       },

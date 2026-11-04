@@ -1,4 +1,33 @@
-<section class="wrap catalog-view"><nav class="breadcrumb" aria-label="Breadcrumb"><a href="{{ routes.root_url }}">Home</a><span>/</span><span>Search</span></nav><div class="section-heading"><div><p class="eyebrow">FIND A REPLACEMENT PART</p><h1>Search parts.</h1></div></div><form class="ff-search-page-form" action="{{ routes.search_url }}" method="get"><input type="hidden" name="type" value="product"><label class="sr-only" for="SearchPageInput">Search products</label><input id="SearchPageInput" type="search" name="q" value="{{ search.terms | escape }}" placeholder="Search by part name or reference" required><button class="button yellow" type="submit">Search <svg class="icon"><use href="#i-search"/></svg></button></form>
-  {% if search.performed %}{% paginate search.results by 24 %}<div class="results-top"><p>{{ search.results_count }} results for “{{ search.terms | escape }}”</p></div><div class="product-grid catalog-grid">{% for result in search.results %}{% if result.object_type == 'product' %}{% render 'ff-product-card', product: result %}{% endif %}{% else %}<div class="empty-state"><h2>No parts found.</h2><p>Try a different product name or reference.</p></div>{% endfor %}</div>{% render 'ff-pagination', paginate: paginate %}{% endpaginate %}{% endif %}
+{% comment %}Recognize the single product-type query used by the home category cards.{% endcomment %}
+{% assign category_title = '' %}
+{% assign query_prefix = search.terms | slice: 0, 14 %}
+{% assign query_end = search.terms | slice: -1, 1 %}
+{% if query_prefix == 'product_type:"' and query_end == '"' %}
+  {% assign type_length = search.terms.size | minus: 15 %}
+  {% assign type_value = search.terms | slice: 14, type_length %}
+  {% assign remaining_value = type_value | remove: '\\' | remove: '\"' %}
+  {% unless remaining_value contains '"' %}
+    {% assign category_title = type_value | replace: '\"', '"' | replace: '\\', '\' %}
+  {% endunless %}
+{% endif %}
+<section class="wrap catalog-view">
+  <nav class="breadcrumb" aria-label="Breadcrumb"><a href="{{ routes.root_url }}">Home</a><span>/</span><span>{% if category_title != blank %}{{ category_title | escape }}{% else %}Search{% endif %}</span></nav>
+  <div class="section-heading"><div><p class="eyebrow">{% if category_title != blank %}THE FRETFUEL PARTS COLLECTION{% else %}FIND A REPLACEMENT PART{% endif %}</p><h1>{% if category_title != blank %}{{ category_title | escape }}{% else %}Search parts.{% endif %}</h1></div></div>
+  {% if category_title == blank %}
+    <form class="ff-search-page-form" action="{{ routes.search_url }}" method="get"><input type="hidden" name="type" value="product"><label class="sr-only" for="SearchPageInput">Search products</label><input id="SearchPageInput" type="search" name="q" value="{{ search.terms | escape }}" placeholder="Search by part name or reference" required><button class="button yellow" type="submit">Search <svg class="icon"><use href="#i-search"/></svg></button></form>
+  {% endif %}
+  {% if search.performed %}
+    {% paginate search.results by 24 %}
+      <div class="results-top"><p>{% if category_title != blank %}{{ search.results_count }} parts{% else %}{{ search.results_count }} results for “{{ search.terms | escape }}”{% endif %}</p>{% if category_title != blank %}<a class="text-link" href="{{ routes.all_products_collection_url }}">Browse all parts ↗</a>{% endif %}</div>
+      <div class="product-grid catalog-grid">
+        {% for result in search.results %}
+          {% if result.object_type == 'product' %}{% render 'ff-product-card', product: result %}{% endif %}
+        {% else %}
+          <div class="empty-state"><h2>No parts found.</h2>{% if category_title != blank %}<p>There are no parts in this category yet.</p><a class="button dark" href="{{ routes.all_products_collection_url }}">Browse all parts</a>{% else %}<p>Try a different product name or reference.</p>{% endif %}</div>
+        {% endfor %}
+      </div>
+      {% render 'ff-pagination', paginate: paginate %}
+    {% endpaginate %}
+  {% endif %}
 </section>
 {% schema %}{"name":"FretFuel search","settings":[]}{% endschema %}
