@@ -12,7 +12,7 @@
   {% for block in section.blocks %}{% if block.type == 'category' %}
     {% assign category_url = block.settings.collection.url | default: '' %}
     {% if category_url == blank %}
-      {% assign category_type = block.settings.product_type | default: default_part_types[block.settings.atlas_index] %}
+      {% assign category_type = block.settings.product_type | strip | default: default_part_types[block.settings.atlas_index] %}
       {% assign category_query = category_type | replace: '\', '\\' | replace: '"', '\"' | prepend: 'product_type:"' | append: '"' | url_encode %}
       {% assign category_url = routes.search_url | append: '?type=product&q=' | append: category_query %}
     {% endif %}
