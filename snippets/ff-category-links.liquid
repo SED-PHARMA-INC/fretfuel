@@ -1,17 +1,73 @@
-{% assign all_parts_url = routes.all_products_collection_url %}
-{% assign ff_tuners = collections['tuners'].url | default: all_parts_url %}
-{% assign ff_bridges = collections['bridges'].url | default: all_parts_url %}
-{% assign ff_pickups = collections['pickups'].url | default: all_parts_url %}
-{% assign ff_electronics = collections['electronics'].url | default: all_parts_url %}
-{% assign ff_pickguards = collections['pickguards'].url | default: all_parts_url %}
-{% assign ff_hardware = collections['hardware'].url | default: all_parts_url %}
+{% liquid
+  capture ff_tuners
+    render 'ff-category-url', collection: collections['tuners'], product_type: 'Guitar tuners', additional_types: 'Bass tuners|Classical tuners'
+  endcapture
+  capture ff_bridges
+    render 'ff-category-url', collection: collections['bridges'], product_type: 'Tremolo bridges', additional_types: 'Bridge|Bridges|Fixed bridges|Tailpieces|Vibrato tailpieces'
+  endcapture
+  capture ff_pickups
+    render 'ff-category-url', collection: collections['pickups'], product_type: 'Pickups'
+  endcapture
+  capture ff_electronics
+    render 'ff-category-url', collection: collections['electronics'], product_type: 'Electronics'
+  endcapture
+  capture ff_pickguards
+    render 'ff-category-url', collection: collections['pickguards'], product_type: 'Pickguards'
+  endcapture
+  capture ff_hardware
+    render 'ff-category-url', collection: collections['hardware'], product_type: 'Saddles', additional_types: 'Knobs|Screws|Hardware'
+  endcapture
+%}
 {% if mega %}
-  <div class="mega-category"><a class="mega-title" href="{{ ff_tuners }}">Tuners ↗</a><p>Guitar, bass & classical</p><a href="{{ collections['guitar-tuners'].url | default: ff_tuners }}">Guitar tuners</a><a href="{{ collections['bass-tuners'].url | default: ff_tuners }}">Bass tuners</a></div>
-  <div class="mega-category"><a class="mega-title" href="{{ ff_bridges }}">Bridges & tailpieces ↗</a><p>Fixed, tremolo & vibrato</p><a href="{{ collections['tremolo-bridges'].url | default: ff_bridges }}">Tremolo bridges</a><a href="{{ collections['tailpieces'].url | default: ff_bridges }}">Tailpieces</a></div>
-  <div class="mega-category"><a class="mega-title" href="{{ ff_pickups }}">Pickups ↗</a><p>Single coil, humbucker & more</p><a href="{{ ff_pickups }}">Shop pickups</a></div>
-  <div class="mega-category"><a class="mega-title" href="{{ ff_electronics }}">Electronics ↗</a><p>Pots, switches & jacks</p><a href="{{ ff_electronics }}">Shop electronics</a></div>
-  <div class="mega-category"><a class="mega-title" href="{{ ff_pickguards }}">Pickguards ↗</a><p>Shapes, cutouts & finishes</p><a href="{{ ff_pickguards }}">Shop pickguards</a></div>
-  <div class="mega-category"><a class="mega-title" href="{{ ff_hardware }}">Hardware & small parts ↗</a><p>Knobs, saddles & screws</p><a href="{{ collections['saddles'].url | default: ff_hardware }}">Saddles</a><a href="{{ collections['knobs'].url | default: ff_hardware }}">Control knobs</a></div>
+  {% liquid
+    capture ff_guitar_tuners
+      render 'ff-category-url', collection: collections['guitar-tuners'], product_type: 'Guitar tuners'
+    endcapture
+    capture ff_bass_tuners
+      render 'ff-category-url', collection: collections['bass-tuners'], product_type: 'Bass tuners'
+    endcapture
+    capture ff_tremolo_bridges
+      render 'ff-category-url', collection: collections['tremolo-bridges'], product_type: 'Tremolo bridges'
+    endcapture
+    capture ff_tailpieces
+      render 'ff-category-url', collection: collections['tailpieces'], product_type: 'Tailpieces'
+    endcapture
+    capture ff_saddles
+      render 'ff-category-url', collection: collections['saddles'], product_type: 'Saddles'
+    endcapture
+    capture ff_knobs
+      render 'ff-category-url', collection: collections['knobs'], product_type: 'Knobs'
+    endcapture
+  %}
+  <div class="mega-category">
+    <a class="mega-title" href="{{ ff_tuners | escape }}">Tuners ↗</a><p>Guitar, bass & classical</p>
+    <a href="{{ ff_guitar_tuners | escape }}">Guitar tuners</a><a href="{{ ff_bass_tuners | escape }}">Bass tuners</a>
+  </div>
+  <div class="mega-category">
+    <a class="mega-title" href="{{ ff_bridges | escape }}">Bridges & tailpieces ↗</a><p>Fixed, tremolo & vibrato</p>
+    <a href="{{ ff_tremolo_bridges | escape }}">Tremolo bridges</a><a href="{{ ff_tailpieces | escape }}">Tailpieces</a>
+  </div>
+  <div class="mega-category">
+    <a class="mega-title" href="{{ ff_pickups | escape }}">Pickups ↗</a><p>Single coil, humbucker & more</p>
+    <a href="{{ ff_pickups | escape }}">Shop pickups</a>
+  </div>
+  <div class="mega-category">
+    <a class="mega-title" href="{{ ff_electronics | escape }}">Electronics ↗</a><p>Pots, switches & jacks</p>
+    <a href="{{ ff_electronics | escape }}">Shop electronics</a>
+  </div>
+  <div class="mega-category">
+    <a class="mega-title" href="{{ ff_pickguards | escape }}">Pickguards ↗</a><p>Shapes, cutouts & finishes</p>
+    <a href="{{ ff_pickguards | escape }}">Shop pickguards</a>
+  </div>
+  <div class="mega-category">
+    <a class="mega-title" href="{{ ff_hardware | escape }}">Hardware & small parts ↗</a><p>Knobs, saddles & screws</p>
+    <a href="{{ ff_saddles | escape }}">Saddles</a><a href="{{ ff_knobs | escape }}">Control knobs</a>
+  </div>
 {% else %}
-  <a href="{{ ff_tuners }}">Tuners</a><a href="{{ ff_bridges }}">Bridges & tailpieces</a><a href="{{ ff_pickups }}">Pickups</a><a href="{{ ff_electronics }}">Electronics</a><a href="{{ ff_pickguards }}">Pickguards</a><a href="{{ ff_hardware }}">Hardware & small parts</a>
+  <a href="{{ ff_tuners | escape }}">Tuners</a>
+  <a href="{{ ff_bridges | escape }}">Bridges & tailpieces</a>
+  <a href="{{ ff_pickups | escape }}">Pickups</a>
+  <a href="{{ ff_electronics | escape }}">Electronics</a>
+  <a href="{{ ff_pickguards | escape }}">Pickguards</a>
+  <a href="{{ ff_hardware | escape }}">Hardware & small parts</a>
 {% endif %}
