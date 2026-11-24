@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#0b0b0c">
     <link rel="icon" href="{{ 'ff-favicon.svg' | asset_url }}" type="image/svg+xml">
-    <title>{{ page_title | escape }}{% unless page_title contains shop.name %} — {{ shop.name | escape }}{% endunless %}</title>
+    {% assign ff_page_title = page_title %}
+    {% if template.name == 'search' %}{% capture ff_category_title %}{% render 'ff-category-title', terms: search.terms %}{% endcapture %}{% if ff_category_title != blank %}{% assign ff_page_title = ff_category_title %}{% endif %}{% endif %}
+    <title>{{ ff_page_title | escape }}{% unless ff_page_title contains shop.name %} — {{ shop.name | escape }}{% endunless %}</title>
     {% if page_description %}<meta name="description" content="{{ page_description | escape }}">{% endif %}
     <link rel="canonical" href="{{ canonical_url }}">
     {{ content_for_header }}

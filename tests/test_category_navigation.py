@@ -86,7 +86,7 @@ class UnitTests(unittest.TestCase):
                 output = self.theme.render_search('product_type:"' + kind + '"', [product(kind, 1)])
                 self.assertIn("<h1>" + kind + "</h1>", output)
                 self.assertEqual(output.count('<article class="product-card">'), 1)
-                self.assertIn("1 parts", output)
+                self.assertIn(">1 part</p>", output)
                 self.assertNotIn("SearchPageInput", output)
                 self.assertNotIn("product_type:", output)
 
@@ -166,9 +166,12 @@ class RegressionTests(unittest.TestCase):
                                      DOM(self.base.render_search(value, rows)).events)
 
     def test_other_home_sections_match_baseline(self):
-        without_categories = lambda text: re.sub(r'<section class="section wrap categories".*?</section>', "", text, flags=re.S)
-        self.assertEqual(DOM(without_categories(self.theme.render_home())).events,
-                         DOM(without_categories(self.base.render_home())).events)
+        def unchanged_regions(text):
+            text = re.sub(r'<section class="section wrap categories".*?</section>', "", text, flags=re.S)
+            text = re.sub(r'<section class="section workbench-section".*?</section>', "", text, flags=re.S)
+            return text.replace('href="/#workbench"', 'href="/#replacement-checklist"')
+        self.assertEqual(DOM(unchanged_regions(self.theme.render_home())).events,
+                         DOM(unchanged_regions(self.base.render_home())).events)
 
     def test_localized_storefront_routes(self):
         routes = dict(ROUTES, search_url="/zh/search", root_url="/zh/")

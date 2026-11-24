@@ -1,0 +1,27 @@
+{%- comment -%}Shopify can expose search.terms with HTML-encoded quotes. Normalize once before recognizing category queries.{%- endcomment -%}
+{%- assign category_query = terms | default: search.terms | strip -%}
+{%- assign type_prefix = 'product_type:"' -%}
+{%- assign prefix_length = type_prefix | size -%}
+{%- assign query_start = category_query | slice: 0, prefix_length -%}
+{%- unless query_start == type_prefix -%}
+  {%- assign category_query = category_query | replace: '&quot;', '"' | replace: '&#34;', '"' | replace: '&#x22;', '"' | replace: '&#39;', "'" | replace: '&#x27;', "'" | replace: '&apos;', "'" | replace: '&lt;', '<' | replace: '&gt;', '>' | replace: '&amp;', '&' -%}
+{%- endunless -%}
+{%- case category_query -%}
+  {%- when 'product_type:"Guitar tuners" OR product_type:"Bass tuners" OR product_type:"Classical tuners"' -%}
+    Tuners
+  {%- when 'product_type:"Tremolo bridges" OR product_type:"Bridge" OR product_type:"Bridges" OR product_type:"Fixed bridges" OR product_type:"Tailpieces" OR product_type:"Vibrato tailpieces"' -%}
+    Bridges & tailpieces
+  {%- when 'product_type:"Saddles" OR product_type:"Knobs" OR product_type:"Screws" OR product_type:"Hardware"' -%}
+    Hardware & small parts
+  {%- else -%}
+    {%- assign query_start = category_query | slice: 0, prefix_length -%}
+    {%- assign query_end = category_query | slice: -1, 1 -%}
+    {%- if query_start == type_prefix and query_end == '"' -%}
+      {%- assign type_length = category_query | size | minus: prefix_length | minus: 1 -%}
+      {%- assign type_value = category_query | slice: prefix_length, type_length -%}
+      {%- assign unescaped_value = type_value | remove: '\\' | remove: '\"' -%}
+      {%- unless unescaped_value contains '"' -%}
+        {{- type_value | replace: '\"', '"' | replace: '\\', '\' -}}
+      {%- endunless -%}
+    {%- endif -%}
+{%- endcase -%}

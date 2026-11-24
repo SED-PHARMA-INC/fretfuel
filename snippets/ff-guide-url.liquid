@@ -1,0 +1,7 @@
+{%- assign guide_link = url | strip -%}
+{%- assign legacy_guide_link = routes.root_url | append: '#workbench' -%}
+{%- if guide_link == blank or guide_link == legacy_guide_link or guide_link == '/#workbench' or guide_link == '#workbench' -%}
+  {{- routes.root_url -}}#{{- topic | default: 'replacement-checklist' -}}
+{%- else -%}
+  {{- guide_link -}}
+{%- endif -%}
