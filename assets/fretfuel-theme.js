@@ -13,6 +13,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (menu && !menu.hidden && !event.target.closest('.shop-header')) setMenu(false);
   });
 
+  const revealGuide = hash => {
+    const target = document.getElementById(hash.slice(1));
+    if (target?.matches('details[data-ff-guide]')) target.open = true;
+  };
+  document.addEventListener('click', event => {
+    const link = event.target.closest('a[href]');
+    if (link && link.origin === window.location.origin && link.pathname === window.location.pathname && link.search === window.location.search) revealGuide(link.hash);
+  });
+  window.addEventListener('hashchange', () => revealGuide(window.location.hash));
+  revealGuide(window.location.hash);
+
   const variantSelect = document.getElementById('ProductVariant');
   const productPrice = document.querySelector('.ff-product-copy .detail-price');
   variantSelect?.addEventListener('change', () => {

@@ -10,6 +10,7 @@ import copy
 import html
 import json
 import math
+import mimetypes
 from pathlib import Path
 import re
 import statistics
@@ -64,6 +65,13 @@ def quoted_type(query):
     return re.sub(r'\\(["\\])', r'\1', match[1])
 
 
+def quoted_types(query):
+    terms = re.findall(r'product_type:"(?:[^"\\]|\\["\\])*"', query)
+    if not terms or " OR ".join(terms) != query:
+        return None
+    return [quoted_type(term) for term in terms]
+
+
 class Theme:
     def __init__(self, revision=None):
         self.env = Environment(loader=FileSystemLoader(ROOT / "snippets", ext=".liquid"))
@@ -73,9 +81,15 @@ class Theme:
                             (collection.get("url", "") if isinstance(collection, dict) else "") + value)
         self.env.add_filter("image_url", lambda value, **kwargs: str(value))
         self.env.add_filter("image_tag", lambda value, **kwargs: '<img src="' + html.escape(str(value), quote=True) + '">')
+        self.env.add_filter("stylesheet_tag", lambda value: '<link rel="stylesheet" href="' + html.escape(value, quote=True) + '">')
         self.home = self.env.from_string(prepare(source("sections/ff-home.liquid", revision)))
         self.search = self.env.from_string(prepare(source("sections/ff-main-search.liquid", revision)))
         self.collection = self.env.from_string(prepare(source("sections/ff-main-collection.liquid", revision)))
+        self.header = self.env.from_string(prepare(source("sections/ff-header.liquid")))
+        self.footer = self.env.from_string(prepare(source("sections/ff-footer.liquid")))
+        self.guide = self.env.from_string(prepare(source("sections/ff-parts-guide.liquid")))
+        layout = source("layout/theme.liquid").replace("{% section 'ff-header' %}", "{{ fixture_header }}").replace("{% section 'ff-footer' %}", "{{ fixture_footer }}")
+        self.layout = self.env.from_string(layout)
         index = source("templates/index.json")
         self.index = json.loads(index[index.index("{"):])["sections"]["home"]
         schema = re.search(r"{% schema %}(.*?){% endschema %}", source("sections/ff-home.liquid"), re.S)[1]
@@ -84,18 +98,26 @@ class Theme:
     def blocks(self):
         return [copy.deepcopy(self.index["blocks"][key]) for key in self.index["block_order"]]
 
-    def render_home(self, blocks=None, routes=None):
+    def settings(self, path):
+        schema = re.search(r"{% schema %}(.*?){% endschema %}", source(path), re.S)[1]
+        return {item["id"]: item.get("default", "") for item in json.loads(schema)["settings"]}
+
+    def render_home(self, blocks=None, routes=None, overrides=None):
         settings = {item["id"]: item.get("default", "") for item in self.schema["settings"]}
         settings.update(self.index["settings"])
         for name in ("featured_collection", "components_collection"):
             settings[name] = {"url": "/collections/all", "products": catalog()}
+        for name, handle in (("hero_collection", "hero"), ("stage_collection", "stage"),
+                             ("black_collection", "black"), ("black_x_collection", "black-x")):
+            settings[name] = {"url": "/collections/" + handle}
+        settings.update(overrides or {})
         blocks = copy.deepcopy(self.blocks() if blocks is None else blocks)
         for block in blocks:
             block["settings"].setdefault("image", "")
         return self.home.render(section={"settings": settings, "blocks": blocks},
                                 routes=routes or ROUTES, collections={"all": settings["featured_collection"]})
 
-    def render_search(self, query, rows=None, page=1, performed=True):
+    def render_search(self, query, rows=None, page=1, performed=True, html_encoded_terms=False):
         rows = [] if rows is None else rows
         pages = max(1, math.ceil(len(rows) / 24))
         url = lambda number: "/search?" + urlencode({"type": "product", "q": query, "page": number})
@@ -105,37 +127,51 @@ class Theme:
                     "parts": [{"title": n, "url": url(n), "is_link": n != page}
                               for n in range(1, pages + 1)]}
         return self.search.render(routes=ROUTES, paginate=paginate,
-                                  search={"terms": query, "performed": performed,
+                                  search={"terms": html.escape(query, quote=True) if html_encoded_terms else query, "performed": performed,
                                           "results": rows[(page - 1) * 24:page * 24],
                                           "results_count": len(rows)})
 
     def page(self, path):
         parsed = urlsplit(path)
         params = parse_qs(parsed.query)
+        query = params.get("q", [""])[0]
+        page_title = "FretFuel local preview"
+        template_name = "index"
         if parsed.path == "/":
             body = self.render_home()
         elif parsed.path == "/search":
-            query = params.get("q", [""])[0]
-            kind = quoted_type(query)
-            rows = [row for row in catalog() if row["type"] == kind] if kind is not None else [
+            template_name = "search"
+            page_title = "Search parts."
+            kinds = quoted_types(query)
+            rows = [row for row in catalog() if row["type"] in kinds] if kinds is not None else [
                 row for row in catalog() if query.lower() in row["title"].lower()]
-            body = self.render_search(query, rows, page=int(params.get("page", [1])[0]), performed=bool(query))
-        elif parsed.path == "/collections/all":
+            body = self.render_search(query, rows, page=int(params.get("page", [1])[0]), performed=bool(query), html_encoded_terms=True)
+        elif parsed.path in ("/collections/all", "/collections/hero", "/collections/stage", "/collections/black", "/collections/black-x"):
+            template_name = "collection"
+            handle = parsed.path.rsplit("/", 1)[1]
+            page_title = {"all": "All parts", "hero": "Hero", "stage": "Stage", "black": "BLACK", "black-x": "BLACK X"}[handle]
+            rows = catalog() if handle == "all" else []
             body = self.collection.render(routes=ROUTES, paginate={"pages": 1},
-                                          collection={"title": "All parts", "description": "",
-                                                      "url": "/collections/all", "products": catalog()[:24],
-                                                      "products_count": len(catalog()), "filters": [],
+                                          collection={"title": page_title, "description": "",
+                                                      "url": parsed.path, "products": rows[:24],
+                                                      "products_count": len(rows), "filters": [],
                                                       "sort_options": []})
+        elif parsed.path == "/pages/parts-guide":
+            template_name = "page"
+            page_title = "Part selection guide"
+            body = self.guide.render(routes=ROUTES)
         elif parsed.path.startswith("/products/fixture-"):
             row = next(row for row in catalog() if row["url"] == parsed.path)
             body = "<h1>" + html.escape(row["title"]) + "</h1>"
         else:
             raise FileNotFoundError(path)
-        return ('<!doctype html><html lang="en"><meta charset="utf-8"><title>Local category test</title>'
-                '<meta name="viewport" content="width=device-width,initial-scale=1">'
-                '<link rel="stylesheet" href="/assets/fretfuel.css">'
-                '<link rel="stylesheet" href="/assets/fretfuel-theme.css">'
-                '<script src="/assets/fretfuel-theme.js" defer></script><main>' + body + '</main></html>')
+        context = dict(routes=dict(ROUTES, cart_url="/cart"), collections={}, shop={"name": "FretFuel"},
+                       search={"terms": html.escape(query, quote=True)}, cart={"item_count": 0})
+        header = self.header.render(section={"settings": self.settings("sections/ff-header.liquid")}, **context)
+        footer = self.footer.render(section={"settings": self.settings("sections/ff-footer.liquid")}, **context)
+        return self.layout.render(fixture_header=header, fixture_footer=footer, content_for_layout=body,
+                                  page_title=page_title, template={"name": template_name},
+                                  request={"locale": {"iso_code": "en"}}, canonical_url=parsed.path, **context)
 
 
 def handler(theme):
@@ -154,7 +190,7 @@ def handler(theme):
                         payload = theme.env.from_string(source("assets/fretfuel.css.liquid")).render().encode()
                     else:
                         payload = asset.read_bytes()
-                    kind = "text/css" if path.endswith(".css") else "text/javascript" if path.endswith(".js") else "application/octet-stream"
+                    kind = mimetypes.guess_type(path)[0] or "application/octet-stream"
                 else:
                     payload = theme.page(self.path).encode("utf-8")
                     kind = "text/html; charset=utf-8"
