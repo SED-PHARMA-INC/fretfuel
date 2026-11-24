@@ -57,8 +57,8 @@ class DepartmentNavigationTests(unittest.TestCase):
         children = {
             "Guitar tuners": "Guitar tuners", "Bass tuners": "Bass tuners",
             "Tremolo bridges": "Tremolo bridges", "Tailpieces": "Tailpieces",
-            "Shop pickups": "Pickups", "Shop electronics": "Electronics",
-            "Shop pickguards": "Pickguards", "Saddles": "Saddles", "Control knobs": "Knobs",
+            "Pickups": "Pickups", "Electronics": "Electronics",
+            "Pickguards": "Pickguards", "Saddles": "Saddles", "Knobs": "Knobs",
         }
         for label, expected in children.items():
             with self.subTest(label=label):
