@@ -166,12 +166,9 @@ class RegressionTests(unittest.TestCase):
                                      DOM(self.base.render_search(value, rows)).events)
 
     def test_other_home_sections_match_baseline(self):
-        def unchanged_regions(text):
-            text = re.sub(r'<section class="section wrap categories".*?</section>', "", text, flags=re.S)
-            text = re.sub(r'<section class="section workbench-section".*?</section>', "", text, flags=re.S)
-            return text.replace('href="/#workbench"', 'href="/#replacement-checklist"')
-        self.assertEqual(DOM(unchanged_regions(self.theme.render_home())).events,
-                         DOM(unchanged_regions(self.base.render_home())).events)
+        without_categories = lambda text: re.sub(r'<section class="section wrap categories".*?</section>', "", text, flags=re.S)
+        self.assertEqual(DOM(without_categories(self.theme.render_home())).events,
+                         DOM(without_categories(self.base.render_home())).events)
 
     def test_localized_storefront_routes(self):
         routes = dict(ROUTES, search_url="/zh/search", root_url="/zh/")
