@@ -1,0 +1,13 @@
+{%- assign collection_url = collection.url | default: '' -%}
+{%- if collection_url != blank -%}
+  {{- collection_url -}}
+{%- else -%}
+  {%- assign related_types = additional_types | split: '|' -%}
+  {%- capture category_query -%}
+    product_type:"{{ product_type | replace: '\', '\\' | replace: '"', '\"' }}"
+    {%- for related_type in related_types -%}
+      {{- ' OR ' -}}product_type:"{{ related_type | replace: '\', '\\' | replace: '"', '\"' }}"
+    {%- endfor -%}
+  {%- endcapture -%}
+  {{- routes.search_url -}}?type=product&q={{ category_query | url_encode -}}
+{%- endif -%}
