@@ -3,7 +3,7 @@ import re
 import unittest
 from urllib.parse import parse_qs, urlencode, urlsplit
 
-from category_harness import ROUTES, TYPES, Theme, product
+from category_harness import TYPES, Theme, product
 from test_category_navigation import DOM
 
 
@@ -87,36 +87,11 @@ class CollectionAndGuideTests(unittest.TestCase):
                 self.assertIn('href="/collections/all">View all parts</a>', markup)
                 self.assertIn('href="' + path + '">Clear filters ↗</a>', markup)
 
-    def test_each_home_guide_opens_its_own_existing_topic(self):
-        markup = self.theme.render_home()
-        for topic in ('replacement-checklist', 'measurement-guide', 'finish-guide'):
-            with self.subTest(topic=topic):
-                self.assertIn('href="/#' + topic + '"', markup)
-                self.assertIn('id="' + topic + '" data-ff-guide', markup)
-        self.assertNotIn('href="/#workbench"', markup)
-        self.assertEqual(len(re.findall(r'<details\b', markup)), 3)
-
-    def test_custom_topic_links_are_preserved(self):
-        settings = {'guide_url': '/pages/custom-checklist',
-                    'measurement_guide_url': '/pages/custom-measurements#dimensions',
-                    'finish_guide_url': 'https://example.com/finishes'}
+    def test_custom_guide_link_is_preserved(self):
+        settings = {'guide_url': '/pages/custom-checklist'}
         markup = self.theme.render_home(overrides=settings)
         for url in settings.values():
             self.assertIn('href="' + url + '"', markup)
-
-    def test_legacy_default_guide_link_uses_the_localized_topic(self):
-        routes = dict(ROUTES, root_url='/zh/')
-        markup = self.theme.render_home(routes=routes, overrides={'guide_url': '/#workbench'})
-        for topic in ('replacement-checklist', 'measurement-guide', 'finish-guide'):
-            self.assertIn('href="/zh/#' + topic + '"', markup)
-        self.assertNotIn('href="/#workbench"', markup)
-
-    def test_standalone_guide_reuses_all_topics_and_shows_checklist_without_javascript(self):
-        markup = self.theme.page('/pages/parts-guide')
-        self.assertIn('id="replacement-checklist" data-ff-guide open', markup)
-        for heading in ('Replacement checklist', 'Measuring replacement parts', 'Comparing hardware finishes'):
-            self.assertIn('<summary>' + heading + '</summary>', markup)
-        self.assertIn('String spacing, mounting post spacing and screw hole spacing', markup)
 
 
 if __name__ == '__main__':

@@ -1,0 +1,8 @@
+{%- assign custom_url = url | strip -%}
+{%- assign trigger_content = content | default: '' -%}
+{%- assign workbench_url = routes.root_url | append: '#workbench' -%}
+{%- if custom_url == blank or custom_url == workbench_url or custom_url == '/#workbench' or custom_url == '#workbench' -%}
+  <button type="button" class="{{ class_name | escape }}" {% if topic == blank or topic == 'finder' %}data-finder{% else %}data-guide="{{ topic | escape }}"{% endif %}>{% if trigger_content != blank %}{{ trigger_content }}{% else %}{{ label | escape }}{% endif %}{% if icon %} <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg>{% endif %}</button>
+{%- else -%}
+  <a class="{{ class_name | escape }}" href="{{ custom_url | escape }}">{% if trigger_content != blank %}{{ trigger_content }}{% else %}{{ label | escape }}{% endif %}{% if icon %} <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg>{% endif %}</a>
+{%- endif -%}

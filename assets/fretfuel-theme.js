@@ -13,16 +13,41 @@ document.addEventListener('DOMContentLoaded', () => {
     if (menu && !menu.hidden && !event.target.closest('.shop-header')) setMenu(false);
   });
 
-  const revealGuide = hash => {
-    const target = document.getElementById(hash.slice(1));
-    if (target?.matches('details[data-ff-guide]')) target.open = true;
+  const guideDialogs = Array.from(document.querySelectorAll('dialog[data-ff-guide-dialog]'));
+  const openGuideDialog = dialog => {
+    if (!dialog) return;
+    setMenu(false);
+    guideDialogs.forEach(other => { if (other !== dialog && other.open) other.close(); });
+    if (!dialog.open) dialog.showModal();
+    dialog.scrollTop = 0;
   };
   document.addEventListener('click', event => {
-    const link = event.target.closest('a[href]');
-    if (link && link.origin === window.location.origin && link.pathname === window.location.pathname && link.search === window.location.search) revealGuide(link.hash);
+    const trigger = event.target.closest('[data-guide], [data-finder], [data-finder-category], [data-guide-close]');
+    if (!trigger) return;
+    if (trigger.hasAttribute('data-guide-close')) {
+      trigger.closest('dialog[data-ff-guide-dialog]')?.close();
+      return;
+    }
+    if (trigger.hasAttribute('data-guide')) {
+      openGuideDialog(document.getElementById('ff-guide-' + trigger.dataset.guide));
+      return;
+    }
+    const finder = document.getElementById('finder-dialog');
+    if (!finder) return;
+    const category = trigger.dataset.finderCategory || '';
+    const panel = Array.from(finder.querySelectorAll('[data-ff-finder-panel]'))
+      .find(item => item.dataset.ffFinderPanel === category);
+    if (!panel) return;
+    finder.querySelectorAll('[data-ff-finder-panel]').forEach(item => { item.hidden = item !== panel; });
+    finder.setAttribute('aria-labelledby', panel.querySelector('h2').id);
+    openGuideDialog(finder);
+    panel.querySelector('h2').focus();
   });
-  window.addEventListener('hashchange', () => revealGuide(window.location.hash));
-  revealGuide(window.location.hash);
+  guideDialogs.forEach(dialog => dialog.addEventListener('click', event => {
+    if (event.target !== dialog) return;
+    const bounds = dialog.getBoundingClientRect();
+    if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) dialog.close();
+  }));
 
   const variantSelect = document.getElementById('ProductVariant');
   const productPrice = document.querySelector('.ff-product-copy .detail-price');
