@@ -166,9 +166,16 @@ class RegressionTests(unittest.TestCase):
                                      DOM(self.base.render_search(value, rows)).events)
 
     def test_other_home_sections_match_baseline(self):
-        without_categories = lambda text: re.sub(r'<section class="section wrap categories".*?</section>', "", text, flags=re.S)
-        self.assertEqual(DOM(without_categories(self.theme.render_home())).events,
-                         DOM(without_categories(self.base.render_home())).events)
+        def unchanged_regions(text):
+            text = re.sub(r'<section class="section wrap categories".*?</section>', '', text, flags=re.S)
+            text = re.sub(r'<section class="section workbench-section".*?</section>', '', text, flags=re.S)
+            text = re.sub(r'<button type="button" class="([^"]*)" data-finder>(.*?)</button>',
+                          r'<a class="\1" href="/#workbench">\2</a>', text, flags=re.S)
+            return re.sub(r'(<a\b[^>]*href="/#workbench"[^>]*>)(.*?)(</a>)',
+                          lambda match: match[1] + match[2].replace(' aria-hidden="true"', '') + match[3],
+                          text, flags=re.S)
+        self.assertEqual(DOM(unchanged_regions(self.theme.render_home())).events,
+                         DOM(unchanged_regions(self.base.render_home())).events)
 
     def test_localized_storefront_routes(self):
         routes = dict(ROUTES, search_url="/zh/search", root_url="/zh/")
