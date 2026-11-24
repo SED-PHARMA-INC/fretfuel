@@ -9,4 +9,4 @@
   {% when 7 %}{% assign ff_position = '50% 0%' %}{% assign ff_extra = true %}
   {% else %}{% assign ff_position = '100% 0%' %}{% assign ff_extra = true %}
 {% endcase %}
-<div class="part-image{% if ff_extra %} extra{% endif %}" role="img" aria-label="{{ label | escape }}" style="background-position:{{ ff_position }}"></div>
+<div class="part-image{% if ff_extra %} extra{% endif %}" role="img" aria-label="{{ label | escape }}" style="background-position:{{ ff_position }};--atlas-y:{{ ff_position | split: ' ' | last }}"></div>
